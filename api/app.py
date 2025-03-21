@@ -6,6 +6,14 @@ from xml.etree import ElementTree
 app = Flask(__name__)
 CORS(app)
 
+# Hilfsfunktion: kürzt den Abstract auf 2–3 Sätze
+def shorten_abstract(text, max_sentences=2):
+    if not text:
+        return ""
+    sentences = text.split(". ")
+    return ". ".join(sentences[:max_sentences]) + ("." if len(sentences) > max_sentences else "")
+
+# Tool-Definition für z. B. TypingMind
 @app.route("/", methods=["GET"])
 def tool_definitions():
     return jsonify([
@@ -25,6 +33,7 @@ def tool_definitions():
         }
     ])
 
+# Hauptfunktion: PubMed-Suche
 @app.route("/pubmed-search", methods=["POST"])
 def pubmed_search():
     data = request.json
@@ -33,6 +42,7 @@ def pubmed_search():
     if not keyword:
         return jsonify({"error": "Missing 'keyword' parameter"}), 400
 
+    # PubMed-Suche (IDs holen)
     search_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
     params = {
         "db": "pubmed",
@@ -44,6 +54,10 @@ def pubmed_search():
     search_response = requests.get(search_url, params=params).json()
     ids = search_response["esearchresult"]["idlist"]
 
+    if not ids:
+        return jsonify({"results": []})
+
+    # Studien-Details abrufen
     fetch_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
     fetch_params = {
         "db": "pubmed",
@@ -52,6 +66,7 @@ def pubmed_search():
     }
     fetch_response = requests.get(fetch_url, params=fetch_params)
 
+    # XML-Daten parsen
     tree = ElementTree.fromstring(fetch_response.content)
     articles = []
 
@@ -63,8 +78,9 @@ def pubmed_search():
 
         articles.append({
             "title": title,
-            "abstract": abstract,
-            "link": link
+            "summary": shorten_abstract(abstract),
+            "link": link,
+            "pmid": pmid
         })
 
     return jsonify({"results": articles})
