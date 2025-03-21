@@ -1,9 +1,10 @@
 services:
   - type: web
-    name: pubmed-api
+    name: pubmed-api-clean
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn api.app:app
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn api.app:app"
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11
+        value: "3.11.11"
