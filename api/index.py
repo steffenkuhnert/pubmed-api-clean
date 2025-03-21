@@ -75,5 +75,4 @@ def pubmed_search():
     return jsonify({
         "results": articles
     })
-# Wichtig für Vercel
 app = app
