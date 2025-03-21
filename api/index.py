@@ -1,8 +1,10 @@
+from flask_cors import CORS
 from flask import Flask, request, jsonify
 import requests
 from xml.etree import ElementTree
 
 app = Flask(__name__)
+CORS(app)
 
 # Endpoint für Tool-Definition (für TypingMind)
 @app.route("/", methods=["GET"])
